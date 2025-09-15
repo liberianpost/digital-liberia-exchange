@@ -92,7 +92,7 @@ const api = {
   }
 };
 
-function Login() {
+function Login({ onLoginSuccess, onBack }) {
   const [dssn, setDssn] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -184,7 +184,15 @@ function Login() {
             clearInterval(interval);
             setPolling(false);
             console.log('Login approved with token:', statusResponse.govToken);
-            alert('Login successful! Welcome to Digital Liberia Exchange.');
+            
+            // Call the success callback with user data
+            onLoginSuccess({
+              dssn: dssn,
+              govToken: statusResponse.govToken,
+              challengeId: response.challengeId,
+              timestamp: new Date().toISOString()
+            });
+            
           } else if (statusResponse.status === 'denied') {
             clearInterval(interval);
             setPolling(false);
@@ -217,6 +225,14 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-content">
+        {/* Back Button */}
+        <button 
+          onClick={onBack}
+          className="back-button"
+        >
+          ← Back to Welcome
+        </button>
+
         <div className="login-header">
           <div className="login-logo">
             <span className="logo-icon">₿</span>
