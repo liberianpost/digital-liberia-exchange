@@ -4,8 +4,86 @@
   background: linear-gradient(135deg, #0c0e2a 0%, #1a1f4b 100%);
   color: white;
   padding: 0;
+  position: relative;
 }
 
+/* Floating Profile Card */
+.profile-floating-card {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(13, 17, 43, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 300px;
+  overflow: hidden;
+}
+
+.profile-card-content {
+  padding: 20px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.profile-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+  border: 2px solid #00ff87;
+}
+
+.profile-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+}
+
+.profile-info p {
+  margin: 0;
+  color: #a0a0e0;
+  font-size: 0.9rem;
+}
+
+.profile-details {
+  margin-bottom: 15px;
+}
+
+.profile-detail {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+}
+
+.profile-detail:last-child {
+  border-bottom: none;
+}
+
+.logout-btn-sm {
+  width: 100%;
+  padding: 10px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logout-btn-sm:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* Header */
 .dashboard-header {
   background: rgba(13, 17, 43, 0.95);
   backdrop-filter: blur(10px);
@@ -13,7 +91,7 @@
   padding: 15px 20px;
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 900;
 }
 
 .header-content {
@@ -23,6 +101,12 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+  gap: 15px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
   gap: 15px;
 }
 
@@ -46,20 +130,17 @@
   background-clip: text;
 }
 
-.logout-btn {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #ef4444;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
+.market-stats {
+  display: flex;
+  gap: 15px;
 }
 
-.logout-btn:hover {
-  background: rgba(239, 68, 68, 0.3);
-  transform: translateY(-2px);
+.market-stat {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 /* Navigation */
@@ -104,10 +185,35 @@
   padding: 30px 20px;
 }
 
-.tab-content h2 {
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.tab-content h2 {
+  margin: 0;
   color: #00ff87;
   font-size: 1.8rem;
+}
+
+.refresh-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #a0a0e0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 /* Home - Crypto Grid */
@@ -202,7 +308,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,7 +320,7 @@
   background: #0c0e2a;
   border-radius: 16px;
   padding: 30px;
-  max-width: 500px;
+  max-width: 900px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -231,16 +337,128 @@
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
+  z-index: 10;
 }
 
-.crypto-details {
-  margin-top: 20px;
+.modal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.modal-crypto-icon {
+  width: 50px;
+  height: 50px;
+  margin-right: 15px;
+}
+
+/* Chart Styles */
+.chart-container {
+  margin-bottom: 25px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.timeframe-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.timeframe-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #a0a0e0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.timeframe-btn.active,
+.timeframe-btn:hover {
+  background: rgba(0, 255, 135, 0.2);
+  color: #00ff87;
+  border-color: #00ff87;
+}
+
+.chart-placeholder {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chart-message {
+  text-align: center;
+  color: #a0a0e0;
+}
+
+.chart-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.chart-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.chart-stat {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.chart-stat span:first-child {
+  display: block;
+  color: #a0a0e0;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.chart-stat span:last-child {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Crypto Details Grid */
+.crypto-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.detail-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-card h4 {
+  margin: 0 0 15px 0;
+  color: #00ff87;
+  font-size: 1.1rem;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 12px 0;
+  padding: 10px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -248,50 +466,13 @@
   border-bottom: none;
 }
 
-/* Profile */
-.profile-card {
-  background: rgba(13, 17, 43, 0.8);
-  border-radius: 12px;
-  padding: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.profile-header {
+.modal-actions {
   display: flex;
-  align-items: center;
-  margin-bottom: 25px;
-}
-
-.profile-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-right: 20px;
-  object-fit: cover;
-}
-
-.profile-details {
-  display: grid;
   gap: 15px;
+  justify-content: center;
 }
 
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-}
-
-.detail-item .label {
-  color: #a0a0e0;
-}
-
-.detail-item .value {
-  font-weight: 500;
-}
-
-/* Trade */
+/* Trade Section */
 .trade-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -304,6 +485,16 @@
   padding: 25px;
   text-align: center;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.trade-card:hover {
+  transform: translateY(-5px);
+}
+
+.trade-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
 }
 
 .trade-card h3 {
@@ -347,14 +538,14 @@
   box-shadow: 0 5px 15px rgba(0, 255, 135, 0.3);
 }
 
-/* Market */
+/* Market Section */
 .market-search {
-  margin-bottom: 25px;
+  flex: 1;
+  max-width: 300px;
 }
 
 .search-input {
   width: 100%;
-  max-width: 400px;
   padding: 12px 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
@@ -369,14 +560,14 @@
 
 .market-table-container {
   overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .market-table {
   width: 100%;
   border-collapse: collapse;
   background: rgba(13, 17, 43, 0.8);
-  border-radius: 12px;
-  overflow: hidden;
 }
 
 .market-table th,
@@ -390,6 +581,8 @@
   background: rgba(0, 255, 135, 0.1);
   color: #00ff87;
   font-weight: 600;
+  position: sticky;
+  top: 0;
 }
 
 .market-table tr {
@@ -419,8 +612,9 @@
 /* Utilities */
 .loading {
   text-align: center;
-  padding: 40px;
+  padding: 60px;
   color: #a0a0e0;
+  font-size: 1.1rem;
 }
 
 .positive {
@@ -432,13 +626,30 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .profile-floating-card {
+    position: relative;
+    top: 0;
+    right: 0;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
   .header-content {
     flex-direction: column;
     text-align: center;
     gap: 10px;
   }
   
+  .market-stats {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
   .dashboard-header h1 {
     font-size: 1.5rem;
   }
@@ -464,6 +675,19 @@
     grid-template-columns: 1fr;
   }
   
+  .crypto-details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
   .market-table {
     font-size: 0.9rem;
   }
@@ -473,26 +697,24 @@
     padding: 10px 8px;
   }
   
-  .modal-content {
-    padding: 20px;
-    margin: 10px;
+  .tab-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .market-search {
+    max-width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .profile-header {
-    flex-direction: column;
-    text-align: center;
+  .chart-stats {
+    grid-template-columns: 1fr;
   }
   
-  .profile-image {
-    margin-right: 0;
-    margin-bottom: 15px;
-  }
-  
-  .detail-item {
-    flex-direction: column;
-    gap: 5px;
+  .timeframe-selector {
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .crypto-header {
@@ -524,5 +746,9 @@
 }
 
 .trade-card {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.detail-card {
   animation: fadeIn 0.6s ease-out;
 }
