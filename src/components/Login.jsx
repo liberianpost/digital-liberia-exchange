@@ -59,7 +59,7 @@ const requestNotificationPermission = async () => {
 };
 
 // API configuration - UPDATED WITH CORRECT URL
-const API_BASE = 'https://api.digitalliberia.com/api';
+const API_BASE = 'https://api.liblandlock.com';
 
 const api = {
   post: async (url, data) => {
