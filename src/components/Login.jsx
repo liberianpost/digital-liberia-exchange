@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../index.css';
 
-// Firebase configuration (same as your existing code)
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyA4NndmuQHTCKh7IyQYAz3DL_r8mttyRYg",
   authDomain: "digitalliberia-notification.firebaseapp.com",
@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: "1:537791418352:web:378b48439b2c9bed6dd735"
 };
 
-// Initialize Firebase (we'll handle this conditionally to avoid conflicts)
+// Initialize Firebase
 let messaging = null;
 if (typeof window !== 'undefined') {
   try {
@@ -58,8 +58,8 @@ const requestNotificationPermission = async () => {
   }
 };
 
-// API configuration - UPDATED WITH CORRECT URL
-const API_BASE = 'https://api.liblandlock.com';
+// API configuration - Use the direct backend URL (not through proxy)
+const API_BASE = 'https://libpayapp.liberianpost.com:8081';
 
 const api = {
   post: async (url, data) => {
@@ -183,7 +183,6 @@ function Login() {
           if (statusResponse.status === 'approved') {
             clearInterval(interval);
             setPolling(false);
-            // Handle successful login here
             console.log('Login approved with token:', statusResponse.govToken);
             alert('Login successful! Welcome to Digital Liberia Exchange.');
           } else if (statusResponse.status === 'denied') {
