@@ -58,10 +58,12 @@ const requestNotificationPermission = async () => {
   }
 };
 
-// API configuration (matching your Android app)
+// API configuration - UPDATED WITH CORRECT URL
+const API_BASE = 'https://api.digitalliberia.com/api';
+
 const api = {
   post: async (url, data) => {
-    const response = await fetch(`https://libpayapp.liberianpost.com:8081${url}`, {
+    const response = await fetch(`${API_BASE}${url}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,12 +71,23 @@ const api = {
       body: JSON.stringify(data),
       credentials: 'include',
     });
+    
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
+    
     return response.json();
   },
+  
   get: async (url) => {
-    const response = await fetch(`https://libpayapp.liberianpost.com:8081${url}`, {
+    const response = await fetch(`${API_BASE}${url}`, {
       credentials: 'include',
     });
+    
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
+    
     return response.json();
   }
 };
@@ -118,7 +131,7 @@ function Login() {
       return response;
     } catch (error) {
       console.error('Error requesting DSSN challenge:', error);
-      throw new Error(error.response?.error || error.message || "Failed to initiate DSSN challenge");
+      throw new Error(error.message || "Failed to initiate DSSN challenge");
     }
   };
 
@@ -133,7 +146,7 @@ function Login() {
       return response;
     } catch (error) {
       console.error('Error polling challenge status:', error);
-      throw new Error(error.response?.error || error.message || "Failed to check approval status");
+      throw new Error(error.message || "Failed to check approval status");
     }
   };
 
