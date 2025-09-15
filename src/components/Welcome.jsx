@@ -1,6 +1,6 @@
 import '../index.css'
 
-function Welcome() {
+function Welcome({ onNavigateToLogin }) {
   return (
     <div className="welcome-container">
       {/* Animated background */}
@@ -54,7 +54,7 @@ function Welcome() {
           </div>
         </div>
         
-        <button className="login-button" onClick={() => console.log('Login clicked')}>
+        <button className="login-button" onClick={onNavigateToLogin}>
           <span className="button-text">Launch Exchange</span>
           <span className="button-icon">→</span>
         </button>
