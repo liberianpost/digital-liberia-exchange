@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
+import LibPayService from './libpayService';
 
 function Dashboard({ userData, onLogout }) {
   const [activeTab, setActiveTab] = useState('home');
@@ -9,16 +10,40 @@ function Dashboard({ userData, onLogout }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState('1D');
+  const [libpayBalance, setLibpayBalance] = useState({ USD: 0, LRD: 0 });
+  const [libpayLoading, setLibpayLoading] = useState(false);
+  const [transactionStatus, setTransactionStatus] = useState(null);
+  const [withdrawalInfo, setWithdrawalInfo] = useState({ amount: '', contact: '' });
 
-  // Fetch live cryptocurrency data
+  // Fetch live cryptocurrency data and LibPay balance
   useEffect(() => {
     fetchLiveCryptoData();
     fetchUserProfile();
+    fetchLibPayBalance();
     
     // Refresh data every 60 seconds
     const interval = setInterval(fetchLiveCryptoData, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchLibPayBalance = async () => {
+    if (!userData?.email) return;
+    
+    setLibpayLoading(true);
+    try {
+      const balanceData = await LibPayService.getBalance(userData.email);
+      if (balanceData.success) {
+        setLibpayBalance({
+          USD: balanceData.balance || 0,
+          LRD: balanceData.lrd_balance || 0
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch LibPay balance:', error);
+    } finally {
+      setLibpayLoading(false);
+    }
+  };
 
   const fetchLiveCryptoData = async () => {
     try {
@@ -63,6 +88,121 @@ function Dashboard({ userData, onLogout }) {
     crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleBuyCrypto = async (crypto, amount, currency = 'USD') => {
+    if (!userData?.email) {
+      setTransactionStatus({ type: 'error', message: 'User not authenticated' });
+      return;
+    }
+
+    setTransactionStatus({ type: 'processing', message: 'Processing payment...' });
+    
+    try {
+      // Create payment request
+      const paymentResponse = await LibPayService.requestPayment(
+        userData.email,
+        amount,
+        currency,
+        `Purchase of ${amount} ${crypto.symbol.toUpperCase()}`,
+        {
+          name: "Digital Liberia Exchange",
+          service: "Crypto Purchase",
+          crypto: crypto.symbol,
+          amount: amount
+        }
+      );
+
+      if (paymentResponse.success) {
+        const paymentRequestId = paymentResponse.paymentRequestId;
+        
+        // Poll for payment status
+        const pollPaymentStatus = async (attempts = 0) => {
+          if (attempts > 30) { // 5 minutes timeout (30 * 10s = 300s)
+            setTransactionStatus({ type: 'timeout', message: 'Payment confirmation timeout' });
+            return;
+          }
+
+          try {
+            const statusResponse = await LibPayService.checkPaymentStatus(paymentRequestId);
+            
+            if (statusResponse.status === 'completed') {
+              // Payment successful - complete crypto purchase
+              setTransactionStatus({ type: 'success', message: 'Payment completed! Crypto purchased successfully.' });
+              
+              // Here you would typically update the user's crypto balance
+              // For now, we'll just refresh the LibPay balance
+              fetchLibPayBalance();
+              
+            } else if (statusResponse.status === 'rejected') {
+              setTransactionStatus({ type: 'error', message: 'Payment was rejected' });
+            } else {
+              // Still pending, continue polling
+              setTimeout(() => pollPaymentStatus(attempts + 1), 10000);
+            }
+          } catch (error) {
+            console.error('Error checking payment status:', error);
+            setTimeout(() => pollPaymentStatus(attempts + 1), 10000);
+          }
+        };
+
+        // Start polling
+        pollPaymentStatus();
+      } else {
+        setTransactionStatus({ type: 'error', message: paymentResponse.message || 'Payment request failed' });
+      }
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      setTransactionStatus({ type: 'error', message: error.message || 'Payment processing failed' });
+    }
+  };
+
+  const handleSellCrypto = async (crypto, amount, currency = 'USD') => {
+    // This would typically:
+    // 1. Sell the crypto from user's balance
+    // 2. Credit the equivalent amount to their LibPay balance
+    
+    setTransactionStatus({ type: 'processing', message: 'Processing sale...' });
+    
+    try {
+      // Simulate sale processing
+      setTimeout(() => {
+        setTransactionStatus({ type: 'success', message: `Sold ${amount} ${crypto.symbol} for ${currency}` });
+        fetchLibPayBalance(); // Refresh balance
+      }, 2000);
+    } catch (error) {
+      setTransactionStatus({ type: 'error', message: error.message || 'Sale failed' });
+    }
+  };
+
+  const handleWithdrawToLibPay = async () => {
+    const { amount, contact } = withdrawalInfo;
+    
+    if (!amount || !contact) {
+      setTransactionStatus({ type: 'error', message: 'Please enter amount and contact information' });
+      return;
+    }
+
+    setTransactionStatus({ type: 'processing', message: 'Processing withdrawal...' });
+    
+    try {
+      const result = await LibPayService.sendMoney(
+        userData.email,
+        contact,
+        parseFloat(amount),
+        'USD' // Assuming USD for crypto withdrawals
+      );
+
+      if (result.success) {
+        setTransactionStatus({ type: 'success', message: `Withdrawal successful! Transaction ID: ${result.transactionId}` });
+        setWithdrawalInfo({ amount: '', contact: '' });
+        fetchLibPayBalance(); // Refresh balance
+      } else {
+        setTransactionStatus({ type: 'error', message: result.message || 'Withdrawal failed' });
+      }
+    } catch (error) {
+      setTransactionStatus({ type: 'error', message: error.message || 'Withdrawal failed' });
+    }
+  };
+
   const renderCandlestickChart = (crypto) => (
     <div className="chart-container">
       <div className="chart-header">
@@ -103,6 +243,115 @@ function Dashboard({ userData, onLogout }) {
           <span>Volume</span>
           <span>${crypto.total_volume.toLocaleString()}</span>
         </div>
+      </div>
+    </div>
+  );
+
+  // Update the modal actions to use LibPay integration
+  const renderModalActions = (crypto) => (
+    <div className="modal-actions">
+      <button 
+        className="trade-btn primary" 
+        onClick={() => {
+          const amount = prompt(`Enter amount of ${crypto.symbol.toUpperCase()} to buy:`);
+          if (amount && !isNaN(amount)) {
+            handleBuyCrypto(crypto, parseFloat(amount));
+          }
+        }}
+      >
+        Buy {crypto.symbol.toUpperCase()}
+      </button>
+      <button 
+        className="trade-btn secondary"
+        onClick={() => {
+          const amount = prompt(`Enter amount of ${crypto.symbol.toUpperCase()} to sell:`);
+          if (amount && !isNaN(amount)) {
+            handleSellCrypto(crypto, parseFloat(amount));
+          }
+        }}
+      >
+        Sell {crypto.symbol.toUpperCase()}
+      </button>
+    </div>
+  );
+
+  // Add LibPay balance to the profile card
+  const renderProfileCard = () => (
+    <div className="profile-floating-card">
+      <div className="profile-card-content">
+        <div className="profile-header">
+          {profileData?.image && (
+            <img src={profileData.image} alt="Profile" className="profile-image" />
+          )}
+          <div className="profile-info">
+            <h4>{profileData?.first_name} {profileData?.last_name}</h4>
+            <p>{profileData?.email}</p>
+          </div>
+        </div>
+        
+        {/* LibPay Balance */}
+        <div className="libpay-balance-section">
+          <h5>LibPay Balance</h5>
+          {libpayLoading ? (
+            <div className="balance-loading">Loading...</div>
+          ) : (
+            <>
+              <div className="balance-item">
+                <span>USD:</span>
+                <span>${libpayBalance.USD.toFixed(2)}</span>
+              </div>
+              <div className="balance-item">
+                <span>LRD:</span>
+                <span>LD${libpayBalance.LRD.toFixed(2)}</span>
+              </div>
+            </>
+          )}
+        </div>
+        
+        <div className="profile-details">
+          <div className="profile-detail">
+            <span>DSSN:</span>
+            <span>{profileData?.DSSN || 'Not provided'}</span>
+          </div>
+          <div className="profile-detail">
+            <span>Phone:</span>
+            <span>{profileData?.phone || 'Not provided'}</span>
+          </div>
+        </div>
+        
+        <button onClick={onLogout} className="logout-btn-sm">
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+
+  // Add withdrawal section to the Wallet tab
+  const renderWithdrawalSection = () => (
+    <div className="withdrawal-section">
+      <h3>Withdraw to LibPay</h3>
+      <div className="withdrawal-form">
+        <input
+          type="number"
+          placeholder="Amount"
+          value={withdrawalInfo.amount}
+          onChange={(e) => setWithdrawalInfo({...withdrawalInfo, amount: e.target.value})}
+          className="withdrawal-input"
+        />
+        <input
+          type="text"
+          placeholder="LibPay email or phone"
+          value={withdrawalInfo.contact}
+          onChange={(e) => setWithdrawalInfo({...withdrawalInfo, contact: e.target.value})}
+          className="withdrawal-input"
+        />
+        <button 
+          onClick={handleWithdrawToLibPay}
+          className="withdrawal-btn"
+          disabled={!withdrawalInfo.amount || !withdrawalInfo.contact}
+        >
+          Withdraw
+        </button>
       </div>
     </div>
   );
@@ -223,10 +472,7 @@ function Dashboard({ userData, onLogout }) {
                   </div>
                 </div>
 
-                <div className="modal-actions">
-                  <button className="trade-btn primary">Buy {selectedCrypto.symbol.toUpperCase()}</button>
-                  <button className="trade-btn secondary">Sell {selectedCrypto.symbol.toUpperCase()}</button>
-                </div>
+                {renderModalActions(selectedCrypto)}
               </div>
             </div>
           )}
@@ -328,6 +574,14 @@ function Dashboard({ userData, onLogout }) {
   const renderWallet = () => (
     <div className="tab-content">
       <h2>Wallet</h2>
+      
+      {/* Transaction Status Display */}
+      {transactionStatus && (
+        <div className={`transaction-status ${transactionStatus.type}`}>
+          {transactionStatus.message}
+        </div>
+      )}
+      
       <div className="wallet-grid">
         <div className="wallet-card">
           <div className="wallet-icon">💼</div>
@@ -342,6 +596,35 @@ function Dashboard({ userData, onLogout }) {
             <button className="wallet-btn secondary">Send</button>
           </div>
         </div>
+        
+        {/* LibPay Balance Card */}
+        <div className="wallet-card libpay-card">
+          <div className="wallet-icon">🏦</div>
+          <h3>LibPay Balance</h3>
+          {libpayLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <>
+              <div className="libpay-balances">
+                <div className="libpay-balance">
+                  <span>USD: ${libpayBalance.USD.toFixed(2)}</span>
+                </div>
+                <div className="libpay-balance">
+                  <span>LRD: LD${libpayBalance.LRD.toFixed(2)}</span>
+                </div>
+              </div>
+              <button 
+                onClick={fetchLibPayBalance} 
+                className="refresh-balance-btn"
+              >
+                ↻ Refresh
+              </button>
+            </>
+          )}
+        </div>
+        
+        {/* Withdrawal Section */}
+        {renderWithdrawalSection()}
         
         <div className="wallet-assets">
           <h3>My Assets</h3>
@@ -413,35 +696,8 @@ function Dashboard({ userData, onLogout }) {
 
   return (
     <div className="dashboard-container">
-      {/* Profile Card in Upper Right Corner */}
-      {profileData && (
-        <div className="profile-floating-card">
-          <div className="profile-card-content">
-            <div className="profile-header">
-              {profileData.image && (
-                <img src={profileData.image} alt="Profile" className="profile-image" />
-              )}
-              <div className="profile-info">
-                <h4>{profileData.first_name} {profileData.last_name}</h4>
-                <p>{profileData.email}</p>
-              </div>
-            </div>
-            <div className="profile-details">
-              <div className="profile-detail">
-                <span>DSSN:</span>
-                <span>{profileData.DSSN || 'Not provided'}</span>
-              </div>
-              <div className="profile-detail">
-                <span>Phone:</span>
-                <span>{profileData.phone || 'Not provided'}</span>
-              </div>
-            </div>
-            <button onClick={onLogout} className="logout-btn-sm">
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Profile Card with LibPay Balance */}
+      {profileData && renderProfileCard()}
 
       <div className="dashboard-header">
         <div className="header-content">
