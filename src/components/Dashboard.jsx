@@ -325,6 +325,92 @@ function Dashboard({ userData, onLogout }) {
     </div>
   );
 
+  const renderWallet = () => (
+    <div className="tab-content">
+      <h2>Wallet</h2>
+      <div className="wallet-grid">
+        <div className="wallet-card">
+          <div className="wallet-icon">💼</div>
+          <h3>My Wallet</h3>
+          <p>Manage your cryptocurrency holdings</p>
+          <div className="wallet-balance">
+            <span className="balance-label">Total Balance</span>
+            <span className="balance-amount">$0.00</span>
+          </div>
+          <div className="wallet-actions">
+            <button className="wallet-btn primary">Receive</button>
+            <button className="wallet-btn secondary">Send</button>
+          </div>
+        </div>
+        
+        <div className="wallet-assets">
+          <h3>My Assets</h3>
+          <div className="assets-list">
+            <div className="asset-item">
+              <div className="asset-info">
+                <span className="asset-icon">₿</span>
+                <div className="asset-details">
+                  <span className="asset-name">Bitcoin</span>
+                  <span className="asset-symbol">BTC</span>
+                </div>
+              </div>
+              <div className="asset-balance">
+                <span className="asset-amount">0.000000</span>
+                <span className="asset-value">$0.00</span>
+              </div>
+            </div>
+            
+            <div className="asset-item">
+              <div className="asset-info">
+                <span className="asset-icon">Ξ</span>
+                <div className="asset-details">
+                  <span className="asset-name">Ethereum</span>
+                  <span className="asset-symbol">ETH</span>
+                </div>
+              </div>
+              <div className="asset-balance">
+                <span className="asset-amount">0.000000</span>
+                <span className="asset-value">$0.00</span>
+              </div>
+            </div>
+            
+            <div className="asset-item">
+              <div className="asset-info">
+                <span className="asset-icon">●</span>
+                <div className="asset-details">
+                  <span className="asset-name">USDT</span>
+                  <span className="asset-symbol">USDT</span>
+                </div>
+              </div>
+              <div className="asset-balance">
+                <span className="asset-amount">0.000000</span>
+                <span className="asset-value">$0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="wallet-transactions">
+          <h3>Recent Transactions</h3>
+          <div className="transactions-list">
+            <div className="transaction-item">
+              <div className="transaction-icon">📥</div>
+              <div className="transaction-details">
+                <span className="transaction-type">Deposit</span>
+                <span className="transaction-date">No transactions yet</span>
+              </div>
+              <div className="transaction-amount">$0.00</div>
+            </div>
+            
+            <div className="transaction-placeholder">
+              <p>Your transaction history will appear here</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="dashboard-container">
       {/* Profile Card in Upper Right Corner */}
@@ -393,12 +479,19 @@ function Dashboard({ userData, onLogout }) {
         >
           📈 Market
         </button>
+        <button 
+          className={activeTab === 'wallet' ? 'nav-btn active' : 'nav-btn'} 
+          onClick={() => setActiveTab('wallet')}
+        >
+          💼 Wallet
+        </button>
       </nav>
 
       <div className="dashboard-content">
         {activeTab === 'home' && renderHome()}
         {activeTab === 'trade' && renderTrade()}
         {activeTab === 'market' && renderMarket()}
+        {activeTab === 'wallet' && renderWallet()}
       </div>
     </div>
   );
